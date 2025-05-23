@@ -203,11 +203,8 @@
       text-align: center;
     }
 
+    input[type="text"],
     input[type="file"], button, #mapsLink {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
       background-color: #1f1f1f;
       border: 2px solid #00ffcc;
       color: #00ffcc;
@@ -219,14 +216,26 @@
       cursor: pointer;
       display: inline-block;
       text-decoration: none;
+      width: 100%; 
+      box-sizing: border-box; 
+    }
+     #aiRouteGenerator input[type="text"], #aiRouteGenerator textarea {
+        font-family: 'Press Start 2P', monospace;
+        background: #111;
+        color: #0f0; 
+        border: 1px solid #00ffcc; 
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin-bottom: 0.5rem; 
+    }
+    #aiRouteGenerator textarea {
+        height: auto; 
+        min-height: 60px; 
     }
 
+
     #mapsLink {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-      display: none;
+      display: none; 
       background-color: #00ffcc;
       color: #000;
       font-weight: bold;
@@ -243,7 +252,7 @@
       margin-top: 1rem;
     }
 
-    textarea {
+    textarea { 
       width: 100%;
       font-family: monospace;
       background: #111;
@@ -253,11 +262,16 @@
       border-radius: 5px;
     }
 
-    #status {
+    #status, #aiStatus {
       margin-top: 10px;
       color: #00ffcc;
       font-size: 0.75rem;
+      text-align: center;
     }
+     #aiStatus {
+        font-size: 0.6rem; 
+    }
+
 
     @media (max-width: 600px) {
       #map { height: 300px; }
@@ -277,70 +291,22 @@
       padding: 1rem;
     }
   </style>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDMFmXm-gGi7bO7Bq5YD0SaB0fvk3ZrS_4&libraries=places">
-    
-// Recalculate route based on checked locations
-function updateFromCheckboxes() {
-      const items = document.querySelectorAll('#routeOutput ol li');
-      const selected = [];
-
-      items.forEach(li => {
-        const checkbox = li.querySelector('input[type="checkbox"]');
-        const label = li.querySelector('span');
-        if (checkbox && checkbox.checked) {
-          const text = label.textContent;
-          const [name, ...addressParts] = text.split(':');
-          selected.push({ name: name.trim(), address: addressParts.join(':').trim() });
-        }
-      });
-
-      if (selected.length >= 2) {
-        currentLocations = selected;
-        planRoute(currentLocations);
-      } else {
-        document.getElementById("mapsLink").style.display = "none";
-      }
-    }
-  
-    
-// Toggle visibility of the location list
-function toggleLocationList() {
-      const routeBlock = document.getElementById("routeOutput");
-      routeBlock.style.display = routeBlock.style.display === 'none' ? 'block' : 'none';
-    }
-  
-
-</script>
-
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDMFmXm-gGi7bO7Bq5YD0SaB0fvk3ZrS_4&libraries=places&callback=initMapAsync" async defer></script>
 </head>
 <body>
 
-  <!-- <details style="margin-top:1rem; border: 2px solid #00ffcc; padding: 1rem; border-radius: 6px;">
-    <summary style="cursor: pointer; font-weight: bold; color: #00ffcc;">How to Use This Tool</summary>
-    <p style="margin-top: 1rem;">Welcome to the Retro Route Planner! This tool helps you map and split long routes into mobile-friendly chunks using Google Maps.</p>
-    <ol style="padding-left: 1.2rem; margin-top: 1rem;">
-      <li><strong>Prepare Your JSON:</strong> Create a file like this:<br>
-        <pre style="background:#111; padding:0.5rem; border:1px solid #00ffcc; overflow-x:auto;">
-[
-  { "name": "Start", "address": "123 Main St, City, State ZIP" },
-  { "name": "Stop 1", "address": "..." },
-  ...
-  { "name": "End", "address": "456 Market St, City, State ZIP" }
-]
-        </pre>
-      </li>
-      <li><strong>Insert Your Google Maps API Key:</strong> Open this file in a text editor and replace the placeholder key here:<br>
-        <code>YOUR_GOOGLE_MAPS_API_KEY_HERE</code><br>
-        Get your key from <a href="https://console.cloud.google.com/" target="_blank" style="color:#00ccff;">Google Cloud Console</a>.
-      </li>
-      <li><strong>Load Your Route:</strong> Upload or paste your JSON data. Your route will appear on the map and below it as a list of stops.</li>
-      <li><strong>Review and Edit:</strong> Uncheck any stop to remove it from the route. The map and buttons update automatically.</li>
-      <li><strong>Open and Go:</strong> Click a “Route Part” button to open that segment in Google Maps (mobile compatible).</li>
-    </ol>
-    <p style="margin-top:1rem;">Tip: Remove your API key if you share this file.</p>
-  </details> -->
-
   <h1>SB3 Route Planner</h1>
+
+  <!-- AI Route Generation -->
+  <div id="aiRouteGenerator" style="margin-bottom: 2rem; border: 2px solid #ff00ff; padding: 1rem; border-radius: 6px;">
+    <h2 style="font-size: 0.8rem; color: #00ffcc;">Generate Route with AI (GPT-4)</h2>
+    <input type="text" id="aiTownCity" placeholder="Enter Town/City (e.g., Austin, TX)">
+    <input type="text" id="aiStartLocation" placeholder="Enter Start Address (e.g., 123 Main St, Austin, TX)">
+    <input type="text" id="aiEndLocation" placeholder="Enter End Address (e.g., 456 Oak Ave, Austin, TX)">
+    <textarea id="aiStoreTypes" rows="3" placeholder="Enter types of stores, comma-separated (e.g., coffee shop, bookstore, grocery store)"></textarea>
+    <button onclick="generateRouteWithAI()">Generate AI Route</button>
+    <div id="aiStatus"></div>
+  </div>
   
 <!-- File Upload Input -->
 <input type="file" id="fileInput" accept=".json">
@@ -365,58 +331,110 @@ function toggleLocationList() {
 <!-- Google Maps Display -->
 <div id="map"></div>
 
-  <script>
+<!-- Hamburger Menu Icon -->
+<div id="menuToggle" onclick="toggleMenu()">
+  <div></div>
+  <div></div>
+  <div></div>
+</div>
+
+<!-- Sidebar Panel: Settings, Instructions, Prompts -->
+<div id="infoPanel">
+  <details style="margin-top:1rem;">
+    <summary>How to Use This Tool</summary>
+    <div style="margin-top:0.5rem;">
+      <p>This tool helps you plan routes using a list of locations formatted in JSON. You can upload your route or paste it manually, or use the AI Route Generator. The map will generate driving segments optimized for Google Maps mobile limits.</p>
+      <ol style="padding-left: 1.2rem; margin-top: 1rem;">
+        <li><strong>Use AI Generator:</strong> Fill in the town, start/end addresses, and store types, then click "Generate AI Route".</li>
+        <li><strong>Or, paste or upload your JSON:</strong> It should start and end with your home or base address, with stops in between.</li>
+        <li>The Google Maps API key is embedded. The OpenAI API key for AI generation is also embedded.</li>
+        <li><strong>Review your route:</strong> Use checkboxes to remove any stops you don't want to include. The tool updates the route and buttons automatically.</li>
+        <li><strong>Navigate:</strong> Use the generated route buttons to open each segment in Google Maps (mobile-friendly limit of 10 stops per route).</li>
+      </ol>
+    </div>
+  </details>
+
+  <details><summary>AI Prompt Examples</summary><div style="margin-top:0.5rem;">
+    <div class="prompt-block">
+      <strong>Multiple Store Types</strong>
+      <pre id="prompt_0">Find all Target, Best Buy, and Dollar General locations in a city. Format the results as a JSON array like this:
+
+[
+  { "name": "Start", "address": "[START_ADDRESS]" },
+  { "name": "Stop 1", "address": "123 Example Blvd, City, ST ZIP" },
+  ...
+  { "name": "End", "address": "[END_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(0)">Copy</button>
+    </div>
+    <div class="prompt-block">
+      <strong>Inventory Check Route</strong>
+      <pre id="prompt_1">I need to visit every GameStop in town to check inventory. Start and end at [HOME_ADDRESS]. Return a list of store names and addresses formatted like:
+
+[
+  { "name": "Start", "address": "[HOME_ADDRESS]" },
+  { "name": "GameStop 1", "address": "..." },
+  ...
+  { "name": "End", "address": "[HOME_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(1)">Copy</button>
+    </div>
+    </div>
+  </details>
+</div>
+
+<script>
     let directionsService, directionsRenderer, currentLocations;
 
-    
-// Initialize Google Map
-function initMap() {
+    function initMapAsync() {
+      initMap();
+    }
+
+    function initMap() {
+      if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        console.error("Google Maps API not loaded yet. initMap called prematurely.");
+        return;
+      }
       directionsService = new google.maps.DirectionsService();
       directionsRenderer = new google.maps.DirectionsRenderer();
       const map = new google.maps.Map(document.getElementById("map"), {
         zoom: 12,
-        center: { lat: 33.5779, lng: -101.8552 }
+        center: { lat: 33.5779, lng: -101.8552 } 
       });
       directionsRenderer.setMap(map);
     }
 
-    
-// Toggle the paste JSON input area
-function togglePaste() {
+    function togglePaste() {
       const pasteBox = document.getElementById("pasteArea");
       pasteBox.style.display = pasteBox.style.display === 'none' ? 'block' : 'none';
     }
 
-    
-// Handle JSON pasted into the text area
-function processPastedJson() {
+    function processPastedJson(jsonString) {
+      let rawJson;
+      if (typeof jsonString === 'string') {
+        rawJson = jsonString;
+      } else {
+        rawJson = document.getElementById("jsonInput").value;
+      }
       try {
-        const raw = document.getElementById("jsonInput").value;
-        const locations = JSON.parse(raw);
-        currentLocations = locations;
+        const locations = JSON.parse(rawJson);
+        currentLocations = locations; 
         displayRoute(locations);
         planRoute(locations);
         document.getElementById("status").innerText = "Route loaded successfully!";
       } catch (err) {
         document.getElementById("status").innerText = "Invalid JSON format.";
+        console.error("Error processing JSON:", err, "Raw JSON:", rawJson);
       }
     }
 
     document.getElementById('fileInput').addEventListener('change', function (event) {
       const file = event.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function (e) {
-        try {
-          const locations = JSON.parse(e.target.result);
-          currentLocations = locations;
-          displayRoute(locations);
-          planRoute(locations);
-          document.getElementById("status").innerText = "Route loaded successfully!";
-        } catch (err) {
-          document.getElementById("status").innerText = "Invalid JSON file.";
-        }
+        document.getElementById("jsonInput").value = e.target.result; 
+        processPastedJson(e.target.result); 
       };
       reader.readAsText(file);
     });
@@ -424,61 +442,47 @@ function processPastedJson() {
     function displayRoute(locations) {
       const output = document.getElementById('routeOutput');
       output.style.display = 'block';
-      output.innerHTML = '<h2>Uploaded Locations:</h2>';
+      output.innerHTML = '<h2>Route Stops:</h2>'; 
       const list = document.createElement('ol');
-      locations.forEach(location => {
-        const item = document.createElement("li"); item.style.display = "flex"; item.style.alignItems = "flex-start"; item.style.gap = "0.5rem";
-        
+      locations.forEach((location, index) => { 
+        const item = document.createElement("li");
+        item.style.display = "flex";
+        item.style.alignItems = "flex-start"; 
+        item.style.gap = "0.5rem";
+        item.style.marginBottom = "0.5rem"; 
+
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = true;
-        checkbox.style.marginRight = "0.5rem";
+        checkbox.id = `loc_checkbox_${index}`; 
+        checkbox.style.marginTop = "0.2em"; 
 
         const label = document.createElement("span");
         label.textContent = `${location.name}: ${location.address}`;
-        label.style.display = "inline-block"; label.style.lineHeight = "1.5"; label.style.marginBottom = "0.5rem"; label.style.paddingLeft = "0.5rem";
-        label.style.padding = "0.25rem 0";
-
-        const divider = document.createElement("hr");
-        divider.style.border = "0";
-        divider.style.height = "1px";
-        divider.style.background = "#00ffcc55";
-        divider.style.margin = "8px 0";
+        label.style.lineHeight = "1.5"; 
 
         checkbox.addEventListener("change", updateFromCheckboxes);
         
-        const leftCol = document.createElement("div");
-        leftCol.style.flex = "0 0 auto";
-        
-        checkbox.style.transform = "scale(1.8)";
-        checkbox.style.marginTop = "0.5rem";
-        checkbox.style.marginLeft = "0.25rem";
-        leftCol.style.display = "flex";
-        leftCol.style.alignItems = "center";
-        leftCol.style.justifyContent = "center";
-        leftCol.style.paddingTop = "0.25rem";
-        leftCol.appendChild(checkbox);
-    
-
-        const rightCol = document.createElement("div");
-        rightCol.style.flex = "1";
-        rightCol.appendChild(label);
-
-        item.appendChild(leftCol);
-        item.appendChild(rightCol);
-    
-        list.appendChild(item);
-        list.appendChild(divider);
+        item.appendChild(checkbox);
+        item.appendChild(label);
     
         list.appendChild(item);
       });
       output.appendChild(list);
     }
-
     
-// Plan and split route, generate map and buttons
-function planRoute(locations) {
-      if (locations.length < 2) return;
+    function planRoute(locations) {
+      if (!google || !google.maps || !directionsService || !directionsRenderer) {
+        console.warn("Google Maps API components not ready for planRoute.");
+        document.getElementById("status").innerText = "Map service not ready. Please wait a moment and try again.";
+        return;
+      }
+      if (!locations || locations.length < 2) {
+        document.getElementById("status").innerText = "Need at least two locations to plan a route.";
+        if(directionsRenderer) directionsRenderer.setDirections({routes: []}); 
+        document.getElementById("mapsLink").style.display = "none";
+        return;
+      }
 
       const origin = locations[0].address.trim();
       const destination = locations[locations.length - 1].address.trim();
@@ -492,359 +496,189 @@ function planRoute(locations) {
         destination,
         waypoints,
         travelMode: google.maps.TravelMode.DRIVING,
-        optimizeWaypoints: true
+        optimizeWaypoints: true 
       }, (response, status) => {
         if (status === 'OK') {
           directionsRenderer.setDirections(response);
-          const order = response.routes[0].waypoint_order;
-          const orderedWaypoints = order.map(i =>
-            encodeURIComponent(locations.slice(1, -1)[i].address.trim())
-          );
           
+          const optimizedRoutePoints = [];
+          optimizedRoutePoints.push({ name: locations[0].name, address: response.routes[0].legs[0].start_address }); 
+
+          response.routes[0].legs.forEach((leg, legIndex) => {
+            if (legIndex < response.routes[0].legs.length -1) {
+                 const waypointOrderIndex = response.routes[0].waypoint_order[legIndex];
+                 optimizedRoutePoints.push({
+                    name: locations[waypointOrderIndex + 1].name, 
+                    address: leg.end_address
+                 });
+            }
+          });
+          optimizedRoutePoints.push({ name: locations[locations.length-1].name, address: response.routes[0].legs[response.routes[0].legs.length - 1].end_address}); 
+
+
           const chunks = [];
-          const fullRoute = [origin, ...orderedWaypoints.map(decodeURIComponent), destination];
-          for (let i = 0; i < fullRoute.length - 1; i += 9) {
-            const chunkOrigin = fullRoute[i];
-            const chunkDest = fullRoute[Math.min(i + 9, fullRoute.length - 1)];
-            const chunkWaypoints = fullRoute.slice(i + 1, i + 9);
+          for (let i = 0; i < optimizedRoutePoints.length -1; i += (8 + 1) ) { 
+            const chunkEndIndex = Math.min(i + (8+1) , optimizedRoutePoints.length - 1);
+            const chunkOrigin = optimizedRoutePoints[i].address;
+            const chunkDest = optimizedRoutePoints[chunkEndIndex].address;
+            const chunkWaypoints = optimizedRoutePoints.slice(i + 1, chunkEndIndex).map(loc => loc.address);
+            
             chunks.push({ origin: chunkOrigin, destination: chunkDest, waypoints: chunkWaypoints });
           }
 
           const container = document.getElementById("mapsLink");
-          container.innerHTML = "";
-          chunks.forEach((chunk, idx) => {
-            const chunkUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(chunk.origin)}&destination=${encodeURIComponent(chunk.destination)}&travelmode=driving&waypoints=${chunk.waypoints.map(encodeURIComponent).join('|')}`;
-            const btn = document.createElement("a");
-            btn.href = chunkUrl;
-            btn.target = "_blank";
-            btn.textContent = `Open Route Part ${idx + 1}`;
-            btn.style.display = "inline-block";
-            btn.style.marginBottom = "0.5rem"; btn.style.marginRight = "0";
-            btn.style.marginTop = "1rem";
-            btn.style.backgroundColor = "transparent"; btn.style.border = "2px solid #00ffcc"; btn.style.color = "#00ffcc";
-            btn.style.color = "#000";
-            btn.style.padding = "0.5rem";
-            btn.style.borderRadius = "5px";
-            btn.style.fontWeight = "bold";
-            container.appendChild(btn);
-          });
-          container.style.display = 'block'; container.style.marginTop = "2rem";
-
-          const link = document.getElementById('mapsLink');
-          link.href = url;
-          link.style.display = 'inline-block';
+          container.innerHTML = ""; 
+          if (chunks.length > 0) {
+            chunks.forEach((chunk, idx) => {
+              const chunkUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(chunk.origin)}&destination=${encodeURIComponent(chunk.destination)}&travelmode=driving&waypoints=${chunk.waypoints.map(encodeURIComponent).join('|')}`;
+              const btn = document.createElement("a");
+              btn.href = chunkUrl;
+              btn.target = "_blank";
+              btn.textContent = `Open Route Part ${idx + 1}`;
+              container.appendChild(btn);
+            });
+            container.style.display = 'block';
+          } else {
+             container.style.display = 'none';
+          }
+          document.getElementById("status").innerText = "Route planned successfully.";
         } else {
           document.getElementById("status").innerText = 'Directions request failed due to ' + status;
+          console.error('Directions request failed due to ' + status, response);
         }
       });
     }
 
-    window.onload = initMap;
-  
-    
-// Recalculate route based on checked locations
-function updateFromCheckboxes() {
-      const items = document.querySelectorAll('#routeOutput ol li');
-      const selected = [];
-
-      items.forEach(li => {
+    function updateFromCheckboxes() {
+      const selectedLocations = [];
+      const displayedItems = document.querySelectorAll('#routeOutput ol li');
+      
+      displayedItems.forEach((li, index) => {
         const checkbox = li.querySelector('input[type="checkbox"]');
-        const label = li.querySelector('span');
-        if (checkbox && checkbox.checked) {
-          const text = label.textContent;
-          const [name, ...addressParts] = text.split(':');
-          selected.push({ name: name.trim(), address: addressParts.join(':').trim() });
+        if (checkbox && checkbox.checked && currentLocations[index]) {
+          selectedLocations.push(currentLocations[index]);
         }
       });
 
-      if (selected.length >= 2) {
-        currentLocations = selected;
-        planRoute(currentLocations);
+      if (selectedLocations.length >= 2) {
+        planRoute(selectedLocations);
       } else {
         document.getElementById("mapsLink").style.display = "none";
+        if (directionsRenderer) directionsRenderer.setDirections({routes: []}); 
+        document.getElementById("status").innerText = "Select at least two locations for a route.";
       }
     }
   
-    
-// Toggle visibility of the location list
-function toggleLocationList() {
+    function toggleLocationList() {
       const routeBlock = document.getElementById("routeOutput");
       routeBlock.style.display = routeBlock.style.display === 'none' ? 'block' : 'none';
     }
-  
 
-</script>
+    async function generateRouteWithAI() {
+      const townCity = document.getElementById("aiTownCity").value.trim();
+      const startLocation = document.getElementById("aiStartLocation").value.trim();
+      const endLocation = document.getElementById("aiEndLocation").value.trim();
+      const storeTypesRaw = document.getElementById("aiStoreTypes").value.trim();
+      const aiStatus = document.getElementById("aiStatus");
 
+      if (!townCity || !startLocation || !endLocation || !storeTypesRaw) {
+        aiStatus.innerText = "Please fill in all AI generation fields.";
+        return;
+      }
+      aiStatus.innerText = "Generating route with AI... Please wait.";
 
-<!-- <details style="margin-top:2rem; border:2px solid #00ffcc; padding:1rem; border-radius:6px;">
-  <summary style="cursor:pointer; font-weight:bold; color:#00ffcc;">AI Prompt Examples</summary>
-  <p style="margin-top:1rem;">Use these prompts with your favorite AI tool to generate location lists in the correct format for this planner. Click “Copy” to quickly use a prompt.</p>
-  <div style="margin-top:1rem;">
+      const storeTypesArray = storeTypesRaw.split(',').map(s => s.trim()).filter(s => s);
+      let stopsPrompt = "";
+      storeTypesArray.forEach((type, index) => {
+        stopsPrompt += `  { "name": "${type}", "address": "..." }`; 
+        if (index < storeTypesArray.length - 1) {
+          stopsPrompt += ",\n";
+        }
+      });
 
-    <div style="margin-top:1rem;">
-      <strong>Multiple Store Types</strong>
-      <pre id="prompt_0" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">Find all Target, Best Buy, and Dollar General locations in a city. Format the results as a JSON array like this:
+      const prompt = `
+Please generate a JSON array for a route.
+The route is in ${townCity}.
+The route starts at "${startLocation}".
+The route ends at "${endLocation}".
+The route should include stops for the following types of places: ${storeTypesArray.join(', ')}.
 
+Format the JSON exactly like this, providing realistic addresses for the stops:
 [
-  { "name": "Start", "address": "[START_ADDRESS]" },
-  { "name": "Stop 1", "address": "123 Example Blvd, City, ST ZIP" },
-  ...
-  { "name": "End", "address": "[END_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(0)">Copy</button>
-    </div>
-    
-    <div style="margin-top:1rem;">
-      <strong>Inventory Check Route</strong>
-      <pre id="prompt_1" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">I need to visit every GameStop in town to check inventory. Start and end at [HOME_ADDRESS]. Return a list of store names and addresses formatted like:
+  { "name": "Start", "address": "${startLocation}" },
+${stopsPrompt}
+  { "name": "End", "address": "${endLocation}" }
+]
 
-[
-  { "name": "Start", "address": "[HOME_ADDRESS]" },
-  { "name": "GameStop 1", "address": "..." },
-  ...
-  { "name": "End", "address": "[HOME_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(1)">Copy</button>
-    </div>
-    
-    <div style="margin-top:1rem;">
-      <strong>Delivery Route Setup</strong>
-      <pre id="prompt_2" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">Plan a delivery route starting at [START_ADDRESS] and ending at [END_ADDRESS]. Include 10 major retail stops in between. Output your answer in the following JSON format:
+Ensure the output is only the JSON array, with no other text before or after it. Each address should be a complete and plausible address within ${townCity}.
+For each store type requested, find one instance. For example, if "coffee shop, bookstore" is requested, find one coffee shop and one bookstore.
+The "name" for each stop should reflect the store type requested (e.g., "Coffee Shop", "Bookstore").
+`;
 
-[
-  { "name": "Start", "address": "[START_ADDRESS]" },
-  { "name": "Retail Stop 1", "address": "..." },
-  ...
-  { "name": "End", "address": "[END_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(2)">Copy</button>
-    </div>
-    
-    <div style="margin-top:1rem;">
-      <strong>Essentials Errand Run</strong>
-      <pre id="prompt_3" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">Help me plan a route that includes one grocery store, pharmacy, post office, and electronics shop. The route should start and end at [HOME_ADDRESS]. Format it like:
+      const apiKey = "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";
 
-[
-  { "name": "Start", "address": "[HOME_ADDRESS]" },
-  { "name": "Grocery Store", "address": "..." },
-  ...
-  { "name": "End", "address": "[HOME_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(3)">Copy</button>
-    </div>
-    
-    <div style="margin-top:1rem;">
-      <strong>Cross-Town Coverage</strong>
-      <pre id="prompt_4" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">Choose one location from each quadrant of town (north, south, east, west) for Walmart, Target, and Best Buy. Return a route starting and ending at [START_ADDRESS] in JSON format like:
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + apiKey
+          },
+          body: JSON.stringify({
+            model: 'gpt-4', 
+            messages: [
+              { role: "system", content: "You are a helpful assistant that generates JSON route data based on user specifications. Only output the JSON array as a valid JSON string, without any surrounding text or markdown." },
+              { role: "user", content: prompt }
+            ],
+            temperature: 0.5
+          })
+        });
 
-[
-  { "name": "Start", "address": "[START_ADDRESS]" },
-  { "name": "West Walmart", "address": "..." },
-  ...
-  { "name": "End", "address": "[START_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(4)">Copy</button>
-    </div>
-    
-    <div style="margin-top:1rem;">
-      <strong>Time-Efficient Shopping Run</strong>
-      <pre id="prompt_5" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">List 8 currently open stores from different retail categories. Generate a route starting and ending at [START_ADDRESS], formatted like this:
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('OpenAI API Error:', errorData);
+          throw new Error('OpenAI API error: ' + response.status + ' ' + response.statusText + ' - ' + (errorData.error ? errorData.error.message : 'Unknown error'));
+        }
 
-[
-  { "name": "Start", "address": "[START_ADDRESS]" },
-  { "name": "Store 1", "address": "..." },
-  ...
-  { "name": "End", "address": "[START_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(5)">Copy</button>
-    </div>
-    
-    <div style="margin-top:1rem;">
-      <strong>Brand-Based Route</strong>
-      <pre id="prompt_6" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">Generate a list of all Dollar General stores in a city, starting and ending at [HOME_ADDRESS]. Use this JSON structure:
+        const data = await response.json();
+        let generatedJsonString = data.choices[0].message.content.trim();
+        
+        if (generatedJsonString.startsWith('```json')) {
+          generatedJsonString = generatedJsonString.substring(7);
+          if (generatedJsonString.endsWith('```')) {
+            generatedJsonString = generatedJsonString.substring(0, generatedJsonString.length - 3);
+          }
+        } else if (generatedJsonString.startsWith('```')) {
+            generatedJsonString = generatedJsonString.substring(3);
+            if (generatedJsonString.endsWith('```')) {
+                generatedJsonString = generatedJsonString.substring(0, generatedJsonString.length - 3);
+            }
+        }
+        
+        console.log("AI Generated JSON String (cleaned):", generatedJsonString);
+        document.getElementById("jsonInput").value = generatedJsonString; 
+        processPastedJson(generatedJsonString); 
+        aiStatus.innerText = "AI route generated and loaded!";
 
-[
-  { "name": "Start", "address": "[HOME_ADDRESS]" },
-  { "name": "Dollar General 1", "address": "..." },
-  ...
-  { "name": "End", "address": "[HOME_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(6)">Copy</button>
-    </div>
-    
-  </div>
-</details> -->
-
-
-<script>
-
-// Copy AI prompt to clipboard
-function copyPrompt(index) {
-  const el = document.getElementById("prompt_" + index);
-  navigator.clipboard.writeText(el.innerText)
-    .then(() => alert("Prompt copied to clipboard!"))
-    .catch(() => alert("Failed to copy prompt."));
-}
-
-
-// Dynamically inject user-supplied Google Maps API key
-function injectApiKey() {
-  const userKey = document.getElementById("apiKeyInput").value.trim();
-  if (!userKey) return alert("Please enter an API key.");
-  const tag = document.createElement("script");
-  tag.src = `https://maps.googleapis.com/maps/api/js?key=${userKey}&libraries=places`;
-  document.head.appendChild(tag);
-  
-  tag.onload = () => {
-    alert("API key applied. Reloading map...");
-    if (window.google && window.google.maps) {
-      initMap();
+      } catch (error) {
+        console.error("Error generating route with AI:", error);
+        document.getElementById("status").innerText = "Error generating route with AI. Check console.";
+        aiStatus.innerText = 'Error: ' + error.message;
+      }
     }
-  };
 
-}
+    function toggleMenu() {
+      const panel = document.getElementById("infoPanel");
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function copyPrompt(index) {
+      const el = document.getElementById("prompt_" + index);
+      navigator.clipboard.writeText(el.innerText)
+        .then(() => alert("Prompt copied to clipboard!"))
+        .catch(() => alert("Failed to copy prompt."));
+    }
 </script>
-
-
-
-
-<!-- Hamburger Menu Icon -->
-<div id="menuToggle" onclick="toggleMenu()">
-  <div></div>
-  <div></div>
-  <div></div>
-</div>
-
-
-<!-- Sidebar Panel: Settings, Instructions, Prompts -->
-<div id="infoPanel">
-
-  
-<details style="margin-top:1rem;">
-  <summary>How to Use This Tool</summary>
-  <div style="margin-top:0.5rem;">
-    <p>This tool helps you plan routes using a list of locations formatted in JSON. You can upload your route or paste it manually, and the map will generate driving segments optimized for Google Maps mobile limits.</p>
-    <ol style="padding-left: 1.2rem; margin-top: 1rem;">
-      <li><strong>Paste or upload your JSON:</strong> It should start and end with your home or base address, with stops in between.</li>
-      <li>The Google Maps API key is now embedded directly in the tool.</li>
-      <li><strong>Review your route:</strong> Use checkboxes to remove any stops you don't want to include. The tool updates the route and buttons automatically.</li>
-      <li><strong>Navigate:</strong> Use the generated route buttons to open each segment in Google Maps (mobile-friendly limit of 10 stops per route).</li>
-    </ol>
-  </div>
-</details>
-
-<details><summary>AI Prompt Examples</summary><div style="margin-top:0.5rem;">
-
-    <div class="prompt-block">
-      <strong>Multiple Store Types</strong>
-      <pre id="prompt_0">Find all Target, Best Buy, and Dollar General locations in a city. Format the results as a JSON array like this:
-
-[
-  { "name": "Start", "address": "[START_ADDRESS]" },
-  { "name": "Stop 1", "address": "123 Example Blvd, City, ST ZIP" },
-  ...
-  { "name": "End", "address": "[END_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(0)">Copy</button>
-    </div>
-    
-    <div class="prompt-block">
-      <strong>Inventory Check Route</strong>
-      <pre id="prompt_1">I need to visit every GameStop in town to check inventory. Start and end at [HOME_ADDRESS]. Return a list of store names and addresses formatted like:
-
-[
-  { "name": "Start", "address": "[HOME_ADDRESS]" },
-  { "name": "GameStop 1", "address": "..." },
-  ...
-  { "name": "End", "address": "[HOME_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(1)">Copy</button>
-    </div>
-    
-    <div class="prompt-block">
-      <strong>Delivery Route Setup</strong>
-      <pre id="prompt_2">Plan a delivery route starting at [START_ADDRESS] and ending at [END_ADDRESS]. Include 10 major retail stops in between. Output your answer in the following JSON format:
-
-[
-  { "name": "Start", "address": "[START_ADDRESS]" },
-  { "name": "Retail Stop 1", "address": "..." },
-  ...
-  { "name": "End", "address": "[END_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(2)">Copy</button>
-    </div>
-    
-    <div class="prompt-block">
-      <strong>Essentials Errand Run</strong>
-      <pre id="prompt_3">Help me plan a route that includes one grocery store, pharmacy, post office, and electronics shop. The route should start and end at [HOME_ADDRESS]. Format it like:
-
-[
-  { "name": "Start", "address": "[HOME_ADDRESS]" },
-  { "name": "Grocery Store", "address": "..." },
-  ...
-  { "name": "End", "address": "[HOME_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(3)">Copy</button>
-    </div>
-    
-    <div class="prompt-block">
-      <strong>Cross-Town Coverage</strong>
-      <pre id="prompt_4">Choose one location from each quadrant of town (north, south, east, west) for Walmart, Target, and Best Buy. Return a route starting and ending at [START_ADDRESS] in JSON format like:
-
-[
-  { "name": "Start", "address": "[START_ADDRESS]" },
-  { "name": "West Walmart", "address": "..." },
-  ...
-  { "name": "End", "address": "[START_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(4)">Copy</button>
-    </div>
-    
-    <div class="prompt-block">
-      <strong>Time-Efficient Shopping Run</strong>
-      <pre id="prompt_5">List 8 currently open stores from different retail categories. Generate a route starting and ending at [START_ADDRESS], formatted like this:
-
-[
-  { "name": "Start", "address": "[START_ADDRESS]" },
-  { "name": "Store 1", "address": "..." },
-  ...
-  { "name": "End", "address": "[START_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(5)">Copy</button>
-    </div>
-    
-    <div class="prompt-block">
-      <strong>Brand-Based Route</strong>
-      <pre id="prompt_6">Generate a list of all Dollar General stores in a city, starting and ending at [HOME_ADDRESS]. Use this JSON structure:
-
-[
-  { "name": "Start", "address": "[HOME_ADDRESS]" },
-  { "name": "Dollar General 1", "address": "..." },
-  ...
-  { "name": "End", "address": "[HOME_ADDRESS]" }
-]</pre>
-      <button onclick="copyPrompt(6)">Copy</button>
-    </div>
-    </div>
-
-<script>
-function toggleMenu() {
-  const panel = document.getElementById("infoPanel");
-  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-}
-
-
-// Copy AI prompt to clipboard
-function copyPrompt(index) {
-  const el = document.getElementById("prompt_" + index);
-  navigator.clipboard.writeText(el.innerText)
-    .then(() => alert("Prompt copied to clipboard!"))
-    .catch(() => alert("Failed to copy prompt."));
-}
-
-
-</script>
-
 
 </body>
 </html>
