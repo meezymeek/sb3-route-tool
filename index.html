@@ -277,7 +277,7 @@
       padding: 1rem;
     }
   </style>
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&libraries=places">
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDMFmXm-gGi7bO7Bq5YD0SaB0fvk3ZrS_4&libraries=places">
     
 // Recalculate route based on checked locations
 function updateFromCheckboxes() {
@@ -310,22 +310,6 @@ function toggleLocationList() {
     }
   
 
-// Dynamically inject user-supplied Google Maps API key
-function injectApiKey() {
-  const userKey = document.getElementById("apiKeyInput").value.trim();
-  if (!userKey) return alert("Please enter an API key.");
-  const tag = document.createElement("script");
-  tag.src = `https://maps.googleapis.com/maps/api/js?key=${userKey}&libraries=places`;
-  document.head.appendChild(tag);
-  
-  tag.onload = () => {
-    alert("API key applied. Reloading map...");
-    if (window.google && window.google.maps) {
-      initMap();
-    }
-  };
-
-}
 </script>
 
 </head>
@@ -589,22 +573,6 @@ function toggleLocationList() {
     }
   
 
-// Dynamically inject user-supplied Google Maps API key
-function injectApiKey() {
-  const userKey = document.getElementById("apiKeyInput").value.trim();
-  if (!userKey) return alert("Please enter an API key.");
-  const tag = document.createElement("script");
-  tag.src = `https://maps.googleapis.com/maps/api/js?key=${userKey}&libraries=places`;
-  document.head.appendChild(tag);
-  
-  tag.onload = () => {
-    alert("API key applied. Reloading map...");
-    if (window.google && window.google.maps) {
-      initMap();
-    }
-  };
-
-}
 </script>
 
 
@@ -750,15 +718,6 @@ function injectApiKey() {
 
 <!-- Sidebar Panel: Settings, Instructions, Prompts -->
 <div id="infoPanel">
-<details style="margin-top:1rem;">
-  <summary>Settings</summary>
-  <div style="margin-top:0.5rem;">
-    <label for="apiKeyInput" style="display:block; margin-bottom:0.5rem;">Paste your Google Maps API Key:</label>
-    <input id="apiKeyInput" type="text" placeholder="YOUR_GOOGLE_MAPS_API_KEY_HERE"
-      style="width:100%; background:#111; color:#0f0; border:1px solid #00ffcc; padding:0.5rem; font-size:0.7rem;">
-    <button onclick="injectApiKey()">Apply API Key</button>
-  </div>
-</details>
 
   
 <details style="margin-top:1rem;">
@@ -767,11 +726,7 @@ function injectApiKey() {
     <p>This tool helps you plan routes using a list of locations formatted in JSON. You can upload your route or paste it manually, and the map will generate driving segments optimized for Google Maps mobile limits.</p>
     <ol style="padding-left: 1.2rem; margin-top: 1rem;">
       <li><strong>Paste or upload your JSON:</strong> It should start and end with your home or base address, with stops in between.</li>
-      <li><strong>Add your Google Maps API key:</strong> Open the <strong>Settings</strong> section in the sidebar (top-right hamburger menu), paste your API key, and apply it. This will immediately load or refresh the map.</li>
-      <li><strong>Important:</strong> Your key is not stored. It will reset if you refresh the page.</li>
-      <li><strong>Optional:</strong> To make your key permanent, replace the placeholder in the HTML script tag manually. Look for:<br>
-        <pre style="background:#111; color:#0f0; border:1px solid #00ffcc; padding:0.5rem; white-space:pre-wrap; word-wrap:break-word;">&lt;script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&amp;libraries=places"&gt;&lt;/script&gt;</pre>
-      </li>
+      <li>The Google Maps API key is now embedded directly in the tool.</li>
       <li><strong>Review your route:</strong> Use checkboxes to remove any stops you don't want to include. The tool updates the route and buttons automatically.</li>
       <li><strong>Navigate:</strong> Use the generated route buttons to open each segment in Google Maps (mobile-friendly limit of 10 stops per route).</li>
     </ol>
@@ -888,22 +843,6 @@ function copyPrompt(index) {
 }
 
 
-// Dynamically inject user-supplied Google Maps API key
-function injectApiKey() {
-  const userKey = document.getElementById("apiKeyInput").value.trim();
-  if (!userKey) return alert("Please enter an API key.");
-  const tag = document.createElement("script");
-  tag.src = `https://maps.googleapis.com/maps/api/js?key=${userKey}&libraries=places`;
-  document.head.appendChild(tag);
-  
-  tag.onload = () => {
-    alert("API key applied. Reloading map...");
-    if (window.google && window.google.maps) {
-      initMap();
-    }
-  };
-
-}
 </script>
 
 
