@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<style>
+  body, p, li, summary, button, pre, textarea { line-height: 1.7 !important; }
+  #menuToggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    width: 40px;
+    height: 40px;
+    background: #111;
+    border: 2px solid #00ffcc;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  #menuToggle div {
+    width: 60%;
+    height: 4px;
+    margin: 6px auto;
+    background-color: #00ffcc;
+  }
+
+  #infoPanel {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 90%;
+    max-width: 400px;
+    background: #111;
+    color: #00ffcc;
+    border-left: 3px solid #00ffcc;
+    padding: 1rem;
+    overflow-y: auto;
+    z-index: 9998;
+    font-size: 0.6rem;
+  }
+
+  #infoPanel h2 {
+    font-size: 0.9rem;
+    color: #ff00ff;
+    margin-bottom: 0.5rem;
+  }
+
+  #infoPanel details {
+    border: none;
+    padding: 0;
+    margin-top: 1rem;
+  }
+
+  #infoPanel summary {
+    font-weight: bold;
+    color: #00ffcc;
+    cursor: pointer;
+    font-size: 0.75rem;
+  }
+
+  .prompt-block {
+    margin-top: 1rem;
+  }
+
+  .prompt-block pre {
+    white-space: pre-wrap;
+    background: #111;
+    color: #0f0;
+    border: 1px solid #00ffcc;
+    padding: 0.75rem;
+    border-radius: 4px;
+  }
+
+  .prompt-block button {
+    background-color: #1f1f1f;
+    border: 2px solid #00ffcc;
+    color: #00ffcc;
+    font-family: inherit;
+    font-size: 0.6rem;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+  }
+</style>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Retro Route Planner</title>
+  <style>
+  body, p, li, summary, button, pre, textarea { line-height: 1.7 !important; }
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    html { scroll-behavior: smooth; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(circle at center, #1a1a1a, #000);
+      color: #00ffcc;
+      font-family: 'Press Start 2P', monospace;
+      padding: 1rem;
+      text-shadow: 0 0 2px #00ffcc;
+    }
+
+    h1, h2 {
+      font-size: 1rem;
+      color: #ff00ff;
+      margin: 1rem 0;
+      text-align: center;
+    }
+
+    input[type="file"], button, a {
+      width: 100%;
+      box-sizing: border-box;
+      background-color: #1f1f1f;
+      border: 2px solid #00ffcc;
+      color: #00ffcc;
+      font-family: inherit;
+      padding: 0.75rem;
+      font-size: 0.7rem;
+      margin-top: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      display: block;
+      text-decoration: none;
+    }
+
+    #mapsLink a { display: block;
+      margin-top: 0.5rem;
+      background: #00ffcc;
+      color: #000;
+      font-weight: bold;
+      text-shadow: none;
+    }
+
+    #mapsLink a:hover, button:hover {
+      background-color: #00cccc;
+      color: black;
+    }
+
+    textarea {
+      width: 100%;
+      font-family: monospace;
+      background: #111;
+      color: #0f0;
+      border: 2px solid #00ffcc;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 1rem;
+    }
+
+    #status {
+      margin-top: 10px;
+      color: #00ffcc;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      #map { height: 300px; }
+      textarea { font-size: 0.6rem; }
+    }
+
+    #map {
+      height: 500px;
+      width: 100%;
+      margin-top: 1rem;
+      border: 3px dotted #ff00ff;
+    }
+
+    ol {
+      margin-top: 1rem;
+      padding-left: 1rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-left: 4px solid #00ffcc;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+      font-size: 0.6rem;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    html { scroll-behavior: smooth; }
+    * { box-sizing: border-box; }
+
+    body {
+      background: radial-gradient(circle at center, #2e2e2e, #000000);
+      color: #00ffcc;
+      font-family: 'Press Start 2P', monospace;
+      padding: 1rem;
+      max-width: 100%;
+      text-shadow: 0 0 4px #00ffcc;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      color: #ff00ff;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    input[type="file"], button, #mapsLink {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+      background-color: #1f1f1f;
+      border: 2px solid #00ffcc;
+      color: #00ffcc;
+      font-family: 'Press Start 2P', monospace;
+      padding: 0.5rem;
+      font-size: 0.65rem;
+      margin-top: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-block;
+      text-decoration: none;
+    }
+
+    #mapsLink {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+      display: none;
+      background-color: #00ffcc;
+      color: #000;
+      font-weight: bold;
+      text-shadow: none;
+    }
+
+    #mapsLink:hover, button:hover {
+      background-color: #00cccc;
+      color: black;
+    }
+
+    #pasteArea {
+      display: none;
+      margin-top: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      font-family: monospace;
+      background: #111;
+      color: #0f0;
+      border: 2px solid #00ffcc;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    #status {
+      margin-top: 10px;
+      color: #00ffcc;
+      font-size: 0.75rem;
+    }
+
+    @media (max-width: 600px) {
+      #map { height: 300px; }
+    }
+    #map {
+      height: 500px;
+      width: 100%;
+      margin-top: 1rem;
+      border: 3px dotted #ff00ff;
+    }
+
+    ol {
+      padding-left: 2rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-left: 5px solid #00ffcc;
+      margin-top: 1rem;
+      padding: 1rem;
+    }
+  </style>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY_HERE&libraries=places">
+    
+// Recalculate route based on checked locations
+function updateFromCheckboxes() {
+      const items = document.querySelectorAll('#routeOutput ol li');
+      const selected = [];
+
+      items.forEach(li => {
+        const checkbox = li.querySelector('input[type="checkbox"]');
+        const label = li.querySelector('span');
+        if (checkbox && checkbox.checked) {
+          const text = label.textContent;
+          const [name, ...addressParts] = text.split(':');
+          selected.push({ name: name.trim(), address: addressParts.join(':').trim() });
+        }
+      });
+
+      if (selected.length >= 2) {
+        currentLocations = selected;
+        planRoute(currentLocations);
+      } else {
+        document.getElementById("mapsLink").style.display = "none";
+      }
+    }
+  
+    
+// Toggle visibility of the location list
+function toggleLocationList() {
+      const routeBlock = document.getElementById("routeOutput");
+      routeBlock.style.display = routeBlock.style.display === 'none' ? 'block' : 'none';
+    }
+  
+
+// Dynamically inject user-supplied Google Maps API key
+function injectApiKey() {
+  const userKey = document.getElementById("apiKeyInput").value.trim();
+  if (!userKey) return alert("Please enter an API key.");
+  const tag = document.createElement("script");
+  tag.src = `https://maps.googleapis.com/maps/api/js?key=${userKey}&libraries=places`;
+  document.head.appendChild(tag);
+  
+  tag.onload = () => {
+    alert("API key applied. Reloading map...");
+    if (window.google && window.google.maps) {
+      initMap();
+    }
+  };
+
+}
+</script>
+
+</head>
+<body>
+
+  <!-- <details style="margin-top:1rem; border: 2px solid #00ffcc; padding: 1rem; border-radius: 6px;">
+    <summary style="cursor: pointer; font-weight: bold; color: #00ffcc;">How to Use This Tool</summary>
+    <p style="margin-top: 1rem;">Welcome to the Retro Route Planner! This tool helps you map and split long routes into mobile-friendly chunks using Google Maps.</p>
+    <ol style="padding-left: 1.2rem; margin-top: 1rem;">
+      <li><strong>Prepare Your JSON:</strong> Create a file like this:<br>
+        <pre style="background:#111; padding:0.5rem; border:1px solid #00ffcc; overflow-x:auto;">
+[
+  { "name": "Start", "address": "123 Main St, City, State ZIP" },
+  { "name": "Stop 1", "address": "..." },
+  ...
+  { "name": "End", "address": "456 Market St, City, State ZIP" }
+]
+        </pre>
+      </li>
+      <li><strong>Insert Your Google Maps API Key:</strong> Open this file in a text editor and replace the placeholder key here:<br>
+        <code>YOUR_GOOGLE_MAPS_API_KEY_HERE</code><br>
+        Get your key from <a href="https://console.cloud.google.com/" target="_blank" style="color:#00ccff;">Google Cloud Console</a>.
+      </li>
+      <li><strong>Load Your Route:</strong> Upload or paste your JSON data. Your route will appear on the map and below it as a list of stops.</li>
+      <li><strong>Review and Edit:</strong> Uncheck any stop to remove it from the route. The map and buttons update automatically.</li>
+      <li><strong>Open and Go:</strong> Click a “Route Part” button to open that segment in Google Maps (mobile compatible).</li>
+    </ol>
+    <p style="margin-top:1rem;">Tip: Remove your API key if you share this file.</p>
+  </details> -->
+
+  <h1>Retro Route Planner</h1>
+  
+<!-- File Upload Input -->
+<input type="file" id="fileInput" accept=".json">
+  
+<!-- Paste JSON Toggle -->
+<button onclick="togglePaste()">Paste & Load JSON</button>
+  
+<!-- JSON Paste Area -->
+<div id="pasteArea">
+    <textarea id="jsonInput" rows="10" placeholder="Paste your JSON route here..."></textarea>
+    <button onclick="processPastedJson()">Load Route</button>
+    <div id="status"></div>
+  </div>
+  
+    <button onclick="toggleLocationList()">Toggle Location List</button>
+    
+<!-- Route List Output Section -->
+<div id="routeOutput" style="display:none;"></div>
+    
+  <a id="mapsLink" href="#" target="_blank">Open Optimized Route in Google Maps</a>
+  
+<!-- Google Maps Display -->
+<div id="map"></div>
+
+  <script>
+    let directionsService, directionsRenderer, currentLocations;
+
+    
+// Initialize Google Map
+function initMap() {
+      directionsService = new google.maps.DirectionsService();
+      directionsRenderer = new google.maps.DirectionsRenderer();
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 12,
+        center: { lat: 33.5779, lng: -101.8552 }
+      });
+      directionsRenderer.setMap(map);
+    }
+
+    
+// Toggle the paste JSON input area
+function togglePaste() {
+      const pasteBox = document.getElementById("pasteArea");
+      pasteBox.style.display = pasteBox.style.display === 'none' ? 'block' : 'none';
+    }
+
+    
+// Handle JSON pasted into the text area
+function processPastedJson() {
+      try {
+        const raw = document.getElementById("jsonInput").value;
+        const locations = JSON.parse(raw);
+        currentLocations = locations;
+        displayRoute(locations);
+        planRoute(locations);
+        document.getElementById("status").innerText = "Route loaded successfully!";
+      } catch (err) {
+        document.getElementById("status").innerText = "Invalid JSON format.";
+      }
+    }
+
+    document.getElementById('fileInput').addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const locations = JSON.parse(e.target.result);
+          currentLocations = locations;
+          displayRoute(locations);
+          planRoute(locations);
+          document.getElementById("status").innerText = "Route loaded successfully!";
+        } catch (err) {
+          document.getElementById("status").innerText = "Invalid JSON file.";
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function displayRoute(locations) {
+      const output = document.getElementById('routeOutput');
+      output.style.display = 'block';
+      output.innerHTML = '<h2>Uploaded Locations:</h2>';
+      const list = document.createElement('ol');
+      locations.forEach(location => {
+        const item = document.createElement("li"); item.style.display = "flex"; item.style.alignItems = "flex-start"; item.style.gap = "0.5rem";
+        
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = true;
+        checkbox.style.marginRight = "0.5rem";
+
+        const label = document.createElement("span");
+        label.textContent = `${location.name}: ${location.address}`;
+        label.style.display = "inline-block"; label.style.lineHeight = "1.5"; label.style.marginBottom = "0.5rem"; label.style.paddingLeft = "0.5rem";
+        label.style.padding = "0.25rem 0";
+
+        const divider = document.createElement("hr");
+        divider.style.border = "0";
+        divider.style.height = "1px";
+        divider.style.background = "#00ffcc55";
+        divider.style.margin = "8px 0";
+
+        checkbox.addEventListener("change", updateFromCheckboxes);
+        
+        const leftCol = document.createElement("div");
+        leftCol.style.flex = "0 0 auto";
+        
+        checkbox.style.transform = "scale(1.8)";
+        checkbox.style.marginTop = "0.5rem";
+        checkbox.style.marginLeft = "0.25rem";
+        leftCol.style.display = "flex";
+        leftCol.style.alignItems = "center";
+        leftCol.style.justifyContent = "center";
+        leftCol.style.paddingTop = "0.25rem";
+        leftCol.appendChild(checkbox);
+    
+
+        const rightCol = document.createElement("div");
+        rightCol.style.flex = "1";
+        rightCol.appendChild(label);
+
+        item.appendChild(leftCol);
+        item.appendChild(rightCol);
+    
+        list.appendChild(item);
+        list.appendChild(divider);
+    
+        list.appendChild(item);
+      });
+      output.appendChild(list);
+    }
+
+    
+// Plan and split route, generate map and buttons
+function planRoute(locations) {
+      if (locations.length < 2) return;
+
+      const origin = locations[0].address.trim();
+      const destination = locations[locations.length - 1].address.trim();
+      const waypoints = locations.slice(1, -1).map(loc => ({
+        location: loc.address.trim(),
+        stopover: true
+      }));
+
+      directionsService.route({
+        origin,
+        destination,
+        waypoints,
+        travelMode: google.maps.TravelMode.DRIVING,
+        optimizeWaypoints: true
+      }, (response, status) => {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(response);
+          const order = response.routes[0].waypoint_order;
+          const orderedWaypoints = order.map(i =>
+            encodeURIComponent(locations.slice(1, -1)[i].address.trim())
+          );
+          
+          const chunks = [];
+          const fullRoute = [origin, ...orderedWaypoints.map(decodeURIComponent), destination];
+          for (let i = 0; i < fullRoute.length - 1; i += 9) {
+            const chunkOrigin = fullRoute[i];
+            const chunkDest = fullRoute[Math.min(i + 9, fullRoute.length - 1)];
+            const chunkWaypoints = fullRoute.slice(i + 1, i + 9);
+            chunks.push({ origin: chunkOrigin, destination: chunkDest, waypoints: chunkWaypoints });
+          }
+
+          const container = document.getElementById("mapsLink");
+          container.innerHTML = "";
+          chunks.forEach((chunk, idx) => {
+            const chunkUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(chunk.origin)}&destination=${encodeURIComponent(chunk.destination)}&travelmode=driving&waypoints=${chunk.waypoints.map(encodeURIComponent).join('|')}`;
+            const btn = document.createElement("a");
+            btn.href = chunkUrl;
+            btn.target = "_blank";
+            btn.textContent = `Open Route Part ${idx + 1}`;
+            btn.style.display = "inline-block";
+            btn.style.marginBottom = "0.5rem"; btn.style.marginRight = "0";
+            btn.style.marginTop = "1rem";
+            btn.style.backgroundColor = "transparent"; btn.style.border = "2px solid #00ffcc"; btn.style.color = "#00ffcc";
+            btn.style.color = "#000";
+            btn.style.padding = "0.5rem";
+            btn.style.borderRadius = "5px";
+            btn.style.fontWeight = "bold";
+            container.appendChild(btn);
+          });
+          container.style.display = 'block'; container.style.marginTop = "2rem";
+
+          const link = document.getElementById('mapsLink');
+          link.href = url; // This 'url' variable is not defined in this scope. Should be removed or fixed.
+          link.style.display = 'inline-block';
+        } else {
+          document.getElementById("status").innerText = 'Directions request failed due to ' + status;
+        }
+      });
+    }
+
+    window.onload = initMap;
+  
+    
+// Recalculate route based on checked locations
+function updateFromCheckboxes() {
+      const items = document.querySelectorAll('#routeOutput ol li');
+      const selected = [];
+
+      items.forEach(li => {
+        const checkbox = li.querySelector('input[type="checkbox"]');
+        const label = li.querySelector('span');
+        if (checkbox && checkbox.checked) {
+          const text = label.textContent;
+          const [name, ...addressParts] = text.split(':');
+          selected.push({ name: name.trim(), address: addressParts.join(':').trim() });
+        }
+      });
+
+      if (selected.length >= 2) {
+        currentLocations = selected;
+        planRoute(currentLocations);
+      } else {
+        document.getElementById("mapsLink").style.display = "none";
+      }
+    }
+  
+    
+// Toggle visibility of the location list
+function toggleLocationList() {
+      const routeBlock = document.getElementById("routeOutput");
+      routeBlock.style.display = routeBlock.style.display === 'none' ? 'block' : 'none';
+    }
+  
+
+// Dynamically inject user-supplied Google Maps API key
+function injectApiKey() {
+  const userKey = document.getElementById("apiKeyInput").value.trim();
+  if (!userKey) return alert("Please enter an API key.");
+  const tag = document.createElement("script");
+  tag.src = `https://maps.googleapis.com/maps/api/js?key=${userKey}&libraries=places`;
+  document.head.appendChild(tag);
+  
+  tag.onload = () => {
+    alert("API key applied. Reloading map...");
+    if (window.google && window.google.maps) {
+      initMap();
+    }
+  };
+
+}
+</script>
+
+
+<!-- <details style="margin-top:2rem; border:2px solid #00ffcc; padding:1rem; border-radius:6px;">
+  <summary style="cursor:pointer; font-weight:bold; color:#00ffcc;">AI Prompt Examples</summary>
+  <p style="margin-top:1rem;">Use these prompts with your favorite AI tool to generate location lists in the correct format for this planner. Click “Copy” to quickly use a prompt.</p>
+  <div style="margin-top:1rem;">
+
+    <div style="margin-top:1rem;">
+      <strong>Multiple Store Types</strong>
+      <pre id="prompt_0" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">Find all Target, Best Buy, and Dollar General locations in a city. Format the results as a JSON array like this:
+
+[
+  { "name": "Start", "address": "[START_ADDRESS]" },
+  { "name": "Stop 1", "address": "123 Example Blvd, City, ST ZIP" },
+  ...
+  { "name": "End", "address": "[END_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(0)">Copy</button>
+    </div>
+    
+    <div style="margin-top:1rem;">
+      <strong>Inventory Check Route</strong>
+      <pre id="prompt_1" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">I need to visit every GameStop in town to check inventory. Start and end at [HOME_ADDRESS]. Return a list of store names and addresses formatted like:
+
+[
+  { "name": "Start", "address": "[HOME_ADDRESS]" },
+  { "name": "GameStop 1", "address": "..." },
+  ...
+  { "name": "End", "address": "[HOME_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(1)">Copy</button>
+    </div>
+    
+    <div style="margin-top:1rem;">
+      <strong>Delivery Route Setup</strong>
+      <pre id="prompt_2" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">Plan a delivery route starting at [START_ADDRESS] and ending at [END_ADDRESS]. Include 10 major retail stops in between. Output your answer in the following JSON format:
+
+[
+  { "name": "Start", "address": "[START_ADDRESS]" },
+  { "name": "Retail Stop 1", "address": "..." },
+  ...
+  { "name": "End", "address": "[END_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(2)">Copy</button>
+    </div>
+    
+    <div style="margin-top:1rem;">
+      <strong>Essentials Errand Run</strong>
+      <pre id="prompt_3" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">Help me plan a route that includes one grocery store, pharmacy, post office, and electronics shop. The route should start and end at [HOME_ADDRESS]. Format it like:
+
+[
+  { "name": "Start", "address": "[HOME_ADDRESS]" },
+  { "name": "Grocery Store", "address": "..." },
+  ...
+  { "name": "End", "address": "[HOME_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(3)">Copy</button>
+    </div>
+    
+    <div style="margin-top:1rem;">
+      <strong>Cross-Town Coverage</strong>
+      <pre id="prompt_4" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">Choose one location from each quadrant of town (north, south, east, west) for Walmart, Target, and Best Buy. Return a route starting and ending at [START_ADDRESS] in JSON format like:
+
+[
+  { "name": "Start", "address": "[START_ADDRESS]" },
+  { "name": "West Walmart", "address": "..." },
+  ...
+  { "name": "End", "address": "[START_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(4)">Copy</button>
+    </div>
+    
+    <div style="margin-top:1rem;">
+      <strong>Time-Efficient Shopping Run</strong>
+      <pre id="prompt_5" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">List 8 currently open stores from different retail categories. Generate a route starting and ending at [START_ADDRESS], formatted like this:
+
+[
+  { "name": "Start", "address": "[START_ADDRESS]" },
+  { "name": "Store 1", "address": "..." },
+  ...
+  { "name": "End", "address": "[START_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(5)">Copy</button>
+    </div>
+    
+    <div style="margin-top:1rem;">
+      <strong>Brand-Based Route</strong>
+      <pre id="prompt_6" style="white-space:pre-wrap; background:#111; color:#0f0; border:1px solid #00ffcc; padding:1rem; border-radius:4px; margin-top:0.5rem;">Generate a list of all Dollar General stores in a city, starting and ending at [HOME_ADDRESS]. Use this JSON structure:
+
+[
+  { "name": "Start", "address": "[HOME_ADDRESS]" },
+  { "name": "Dollar General 1", "address": "..." },
+  ...
+  { "name": "End", "address": "[HOME_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(6)">Copy</button>
+    </div>
+    
+  </div>
+</details> -->
+
+
+<script>
+
+// Copy AI prompt to clipboard
+function copyPrompt(index) {
+  const el = document.getElementById("prompt_" + index);
+  navigator.clipboard.writeText(el.innerText)
+    .then(() => alert("Prompt copied to clipboard!"))
+    .catch(() => alert("Failed to copy prompt."));
+}
+
+
+// Dynamically inject user-supplied Google Maps API key
+function injectApiKey() {
+  const userKey = document.getElementById("apiKeyInput").value.trim();
+  if (!userKey) return alert("Please enter an API key.");
+  const tag = document.createElement("script");
+  tag.src = `https://maps.googleapis.com/maps/api/js?key=${userKey}&libraries=places`;
+  document.head.appendChild(tag);
+  
+  tag.onload = () => {
+    alert("API key applied. Reloading map...");
+    if (window.google && window.google.maps) {
+      initMap();
+    }
+  };
+
+}
+</script>
+
+
+
+
+<!-- Hamburger Menu Icon -->
+<div id="menuToggle" onclick="toggleMenu()">
+  <div></div>
+  <div></div>
+  <div></div>
+</div>
+
+
+<!-- Sidebar Panel: Settings, Instructions, Prompts -->
+<div id="infoPanel">
+<details style="margin-top:1rem;">
+  <summary>Settings</summary>
+  <div style="margin-top:0.5rem;">
+    <label for="apiKeyInput" style="display:block; margin-bottom:0.5rem;">Paste your Google Maps API Key:</label>
+    <input id="apiKeyInput" type="text" placeholder="YOUR_GOOGLE_MAPS_API_KEY_HERE"
+      style="width:100%; background:#111; color:#0f0; border:1px solid #00ffcc; padding:0.5rem; font-size:0.7rem;">
+    <button onclick="injectApiKey()">Apply API Key</button>
+  </div>
+</details>
+
+  
+<details style="margin-top:1rem;">
+  <summary>How to Use This Tool</summary>
+  <div style="margin-top:0.5rem;">
+    <p>This tool helps you plan routes using a list of locations formatted in JSON. You can upload your route or paste it manually, and the map will generate driving segments optimized for Google Maps mobile limits.</p>
+    <ol style="padding-left: 1.2rem; margin-top: 1rem;">
+      <li><strong>Paste or upload your JSON:</strong> It should start and end with your home or base address, with stops in between.</li>
+      <li><strong>Add your Google Maps API key:</strong> Open the <strong>Settings</strong> section in the sidebar (top-right hamburger menu), paste your API key, and apply it. This will immediately load or refresh the map.</li>
+      <li><strong>Important:</strong> Your key is not stored. It will reset if you refresh the page.</li>
+      <li><strong>Optional:</strong> To make your key permanent, replace the placeholder in the HTML script tag manually. Look for:<br>
+        <pre style="background:#111; color:#0f0; border:1px solid #00ffcc; padding:0.5rem; white-space:pre-wrap; word-wrap:break-word;"><script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&libraries=places"></script></pre>
+      </li>
+      <li><strong>Review your route:</strong> Use checkboxes to remove any stops you don't want to include. The tool updates the route and buttons automatically.</li>
+      <li><strong>Navigate:</strong> Use the generated route buttons to open each segment in Google Maps (mobile-friendly limit of 10 stops per route).</li>
+    </ol>
+  </div>
+</details>
+
+<details><summary>AI Prompt Examples</summary><div style="margin-top:0.5rem;">
+
+    <div class="prompt-block">
+      <strong>Multiple Store Types</strong>
+      <pre id="prompt_0">Find all Target, Best Buy, and Dollar General locations in a city. Format the results as a JSON array like this:
+
+[
+  { "name": "Start", "address": "[START_ADDRESS]" },
+  { "name": "Stop 1", "address": "123 Example Blvd, City, ST ZIP" },
+  ...
+  { "name": "End", "address": "[END_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(0)">Copy</button>
+    </div>
+    
+    <div class="prompt-block">
+      <strong>Inventory Check Route</strong>
+      <pre id="prompt_1">I need to visit every GameStop in town to check inventory. Start and end at [HOME_ADDRESS]. Return a list of store names and addresses formatted like:
+
+[
+  { "name": "Start", "address": "[HOME_ADDRESS]" },
+  { "name": "GameStop 1", "address": "..." },
+  ...
+  { "name": "End", "address": "[HOME_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(1)">Copy</button>
+    </div>
+    
+    <div class="prompt-block">
+      <strong>Delivery Route Setup</strong>
+      <pre id="prompt_2">Plan a delivery route starting at [START_ADDRESS] and ending at [END_ADDRESS]. Include 10 major retail stops in between. Output your answer in the following JSON format:
+
+[
+  { "name": "Start", "address": "[START_ADDRESS]" },
+  { "name": "Retail Stop 1", "address": "..." },
+  ...
+  { "name": "End", "address": "[END_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(2)">Copy</button>
+    </div>
+    
+    <div class="prompt-block">
+      <strong>Essentials Errand Run</strong>
+      <pre id="prompt_3">Help me plan a route that includes one grocery store, pharmacy, post office, and electronics shop. The route should start and end at [HOME_ADDRESS]. Format it like:
+
+[
+  { "name": "Start", "address": "[HOME_ADDRESS]" },
+  { "name": "Grocery Store", "address": "..." },
+  ...
+  { "name": "End", "address": "[HOME_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(3)">Copy</button>
+    </div>
+    
+    <div class="prompt-block">
+      <strong>Cross-Town Coverage</strong>
+      <pre id="prompt_4">Choose one location from each quadrant of town (north, south, east, west) for Walmart, Target, and Best Buy. Return a route starting and ending at [START_ADDRESS] in JSON format like:
+
+[
+  { "name": "Start", "address": "[START_ADDRESS]" },
+  { "name": "West Walmart", "address": "..." },
+  ...
+  { "name": "End", "address": "[START_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(4)">Copy</button>
+    </div>
+    
+    <div class="prompt-block">
+      <strong>Time-Efficient Shopping Run</strong>
+      <pre id="prompt_5">List 8 currently open stores from different retail categories. Generate a route starting and ending at [START_ADDRESS], formatted like this:
+
+[
+  { "name": "Start", "address": "[START_ADDRESS]" },
+  { "name": "Store 1", "address": "..." },
+  ...
+  { "name": "End", "address": "[START_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(5)">Copy</button>
+    </div>
+    
+    <div class="prompt-block">
+      <strong>Brand-Based Route</strong>
+      <pre id="prompt_6">Generate a list of all Dollar General stores in a city, starting and ending at [HOME_ADDRESS]. Use this JSON structure:
+
+[
+  { "name": "Start", "address": "[HOME_ADDRESS]" },
+  { "name": "Dollar General 1", "address": "..." },
+  ...
+  { "name": "End", "address": "[HOME_ADDRESS]" }
+]</pre>
+      <button onclick="copyPrompt(6)">Copy</button>
+    </div>
+    </div>
+
+<script>
+function toggleMenu() {
+  const panel = document.getElementById("infoPanel");
+  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+}
+
+
+// Copy AI prompt to clipboard
+function copyPrompt(index) {
+  const el = document.getElementById("prompt_" + index);
+  navigator.clipboard.writeText(el.innerText)
+    .then(() => alert("Prompt copied to clipboard!"))
+    .catch(() => alert("Failed to copy prompt."));
+}
+
+
+// Dynamically inject user-supplied Google Maps API key
+function injectApiKey() {
+  const userKey = document.getElementById("apiKeyInput").value.trim();
+  if (!userKey) return alert("Please enter an API key.");
+  const tag = document.createElement("script");
+  tag.src = `https://maps.googleapis.com/maps/api/js?key=${userKey}&libraries=places`;
+  document.head.appendChild(tag);
+  
+  tag.onload = () => {
+    alert("API key applied. Reloading map...");
+    if (window.google && window.google.maps) {
+      initMap();
+    }
+  };
+
+}
+</script>
+
+
+</body>
+</html>
+<environment_details>
+# VSCode Visible Files
+index.html
+
+# VSCode Open Tabs
+index.html
+
+# Current Time
+5/24/2025, 11:04:11 AM (America/Chicago, UTC-5:00)
+
+# Context Window Usage
+527,221 / 1,048.576K tokens used (50%)
+
+# Current Mode
+ACT MODE
+</environment_details>
