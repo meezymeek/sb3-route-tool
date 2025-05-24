@@ -532,9 +532,9 @@ function planRoute(locations) {
           });
           container.style.display = 'block'; container.style.marginTop = "2rem";
 
-          const link = document.getElementById('mapsLink');
-          link.href = url; // This 'url' variable is not defined in this scope. Should be removed or fixed.
-          link.style.display = 'inline-block';
+          // const link = document.getElementById('mapsLink'); // mapsLink is now a container for buttons
+          // link.href = url; // This 'url' variable was not defined and this line is not needed.
+          // link.style.display = 'inline-block'; // The container's display is already handled.
         } else {
           document.getElementById("status").innerText = 'Directions request failed due to ' + status;
         }
