@@ -349,6 +349,7 @@ function toggleLocationList() {
   
 <!-- Paste JSON Toggle -->
 <button onclick="togglePaste()">Paste & Load JSON</button>
+<button onclick="clearSavedRouteOG()" style="margin-top: 0.5rem; background-color: #555;">Clear Saved Route & Current</button>
   
 <!-- JSON Paste Area -->
 <div id="pasteArea">
@@ -396,6 +397,7 @@ function processPastedJson() {
         const raw = document.getElementById("jsonInput").value;
         const locations = JSON.parse(raw);
         currentLocations = locations;
+        localStorage.setItem('sb3RoutePlannerOG_lastRoute', JSON.stringify(locations)); // Save to localStorage
         displayRoute(locations);
         planRoute(locations);
         document.getElementById("status").innerText = "Route loaded successfully!";
@@ -413,6 +415,7 @@ function processPastedJson() {
         try {
           const locations = JSON.parse(e.target.result);
           currentLocations = locations;
+          localStorage.setItem('sb3RoutePlannerOG_lastRoute', JSON.stringify(locations)); // Save to localStorage
           displayRoute(locations);
           planRoute(locations);
           document.getElementById("status").innerText = "Route loaded successfully!";
@@ -541,8 +544,51 @@ function planRoute(locations) {
       });
     }
 
-    window.onload = initMap;
+    window.onload = () => {
+      initMap();
+      loadSavedRouteOG();
+    };
   
+    function loadSavedRouteOG() {
+      const savedRouteData = localStorage.getItem('sb3RoutePlannerOG_lastRoute');
+      const statusDiv = document.getElementById('status');
+      if (savedRouteData) {
+        try {
+          const locations = JSON.parse(savedRouteData);
+          if (locations && locations.length > 0) {
+            currentLocations = locations;
+            displayRoute(locations);
+            planRoute(locations);
+            if (statusDiv) statusDiv.innerText = "Loaded saved route.";
+            setTimeout(() => { if (statusDiv && statusDiv.innerText === "Loaded saved route.") statusDiv.innerText = ""; }, 3000);
+          }
+        } catch (e) {
+          console.error("Error parsing saved route data from OG planner:", e);
+          localStorage.removeItem('sb3RoutePlannerOG_lastRoute'); // Clear corrupted data
+        }
+      }
+    }
+
+    function clearSavedRouteOG() {
+      localStorage.removeItem('sb3RoutePlannerOG_lastRoute');
+      currentLocations = [];
+      if (directionsRenderer) {
+        directionsRenderer.setDirections({ routes: [] });
+      }
+      const routeOutput = document.getElementById('routeOutput');
+      if (routeOutput) {
+        routeOutput.innerHTML = '';
+        routeOutput.style.display = 'none';
+      }
+      const mapsLink = document.getElementById('mapsLink');
+      if (mapsLink) {
+        mapsLink.innerHTML = '';
+        mapsLink.style.display = 'none';
+      }
+      const statusDiv = document.getElementById('status');
+      if (statusDiv) statusDiv.innerText = "Saved route cleared.";
+       setTimeout(() => { if (statusDiv && statusDiv.innerText === "Saved route cleared.") statusDiv.innerText = ""; }, 3000);
+    }
     
 // Recalculate route based on checked locations
 function updateFromCheckboxes() {
