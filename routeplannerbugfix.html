@@ -191,6 +191,7 @@
     </div>
     
     <button onclick="planRouteFromInputs()">Plan Route</button>
+    <button onclick="clearSavedRoute()" style="margin-top: 0.5rem; background-color: #555;">Clear Saved Route & Current</button>
     <div id="routeInputStatus"></div>
   </div>
     
@@ -249,6 +250,7 @@
 
     function initMapAsync() {
       initMap();
+      loadSavedRoute(); // Attempt to load saved route after map is ready
     }
 
     function initMap() {
@@ -355,6 +357,7 @@
         { name: "End", address: endAddress }
       ];
       currentLocations = locations;
+      localStorage.setItem('sb3RoutePlanner_lastRoute', JSON.stringify(locations)); // Save to localStorage
       displayRoute(locations);
       planRoute(locations);
       
@@ -362,6 +365,49 @@
       if (statusDiv.innerText === "Planning route..." || statusDiv.innerText === "Searching for intermediate stops...") {
          statusDiv.innerText = "";
       }
+    }
+
+    function loadSavedRoute() {
+      const savedRouteData = localStorage.getItem('sb3RoutePlanner_lastRoute');
+      const statusDiv = document.getElementById('routeInputStatus');
+      if (savedRouteData) {
+        try {
+          const locations = JSON.parse(savedRouteData);
+          if (locations && locations.length > 0) {
+            currentLocations = locations;
+            displayRoute(locations);
+            planRoute(locations);
+            if (statusDiv) statusDiv.innerText = "Loaded saved route.";
+            setTimeout(() => { if (statusDiv && statusDiv.innerText === "Loaded saved route.") statusDiv.innerText = ""; }, 3000);
+          }
+        } catch (e) {
+          console.error("Error parsing saved route data:", e);
+          localStorage.removeItem('sb3RoutePlanner_lastRoute'); // Clear corrupted data
+        }
+      }
+    }
+
+    function clearSavedRoute() {
+      localStorage.removeItem('sb3RoutePlanner_lastRoute');
+      currentLocations = [];
+      if (directionsRenderer) {
+        directionsRenderer.setDirections({ routes: [] });
+      }
+      const routeOutput = document.getElementById('routeOutput');
+      if (routeOutput) {
+        routeOutput.innerHTML = '';
+        routeOutput.style.display = 'none';
+      }
+      const mapsLink = document.getElementById('mapsLink');
+      if (mapsLink) {
+        mapsLink.innerHTML = '';
+        mapsLink.style.display = 'none';
+      }
+      const statusDiv = document.getElementById('routeInputStatus');
+      if (statusDiv) statusDiv.innerText = "Saved route cleared.";
+      const mainStatus = document.getElementById('status');
+      if(mainStatus) mainStatus.innerText = "";
+       setTimeout(() => { if (statusDiv && statusDiv.innerText === "Saved route cleared.") statusDiv.innerText = ""; }, 3000);
     }
     
     function extractCityFromAddress(fullAddress) {
