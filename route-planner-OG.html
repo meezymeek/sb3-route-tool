@@ -97,11 +97,11 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: radial-gradient(circle at center, #1a1a1a, #000);
+      background-color: #111111; /* Solid dark background */
       color: #00ffcc;
       font-family: 'Press Start 2P', monospace;
       padding: 1rem;
-      text-shadow: 0 0 2px #00ffcc;
+      /* text-shadow: 0 0 2px #00ffcc; */ /* Removed text-shadow */
     }
 
     h1, h2 {
@@ -188,12 +188,12 @@
     * { box-sizing: border-box; }
 
     body {
-      background: radial-gradient(circle at center, #2e2e2e, #000000);
+      background-color: #111111; /* Solid dark background */
       color: #00ffcc;
       font-family: 'Press Start 2P', monospace;
       padding: 1rem;
       max-width: 100%;
-      text-shadow: 0 0 4px #00ffcc;
+      /* text-shadow: 0 0 4px #00ffcc; */ /* Removed text-shadow */
     }
 
     h1 {
@@ -201,6 +201,7 @@
       color: #ff00ff;
       margin-bottom: 1rem;
       text-align: center;
+      /* text-shadow will be inherited or none if body's is removed */
     }
 
     input[type="file"], button, #mapsLink {
