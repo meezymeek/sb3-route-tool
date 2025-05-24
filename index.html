@@ -169,6 +169,10 @@
     }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDMFmXm-gGi7bO7Bq5YD0SaB0fvk3ZrS_4&libraries=places&callback=initMapAsync" async defer></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics-compat.js"></script>
 </head>
 <body>
 
@@ -207,6 +211,22 @@
 
 <!-- Sidebar Panel: Settings, Instructions, Prompts -->
 <div id="infoPanel">
+  <details id="authSection" style="margin-top:1rem;">
+    <summary>Login / Register</summary>
+    <div id="authContainer" style="margin-top:0.5rem;">
+      <div id="userLoggedIn" style="display:none;">
+        <p>Logged in as: <span id="userEmailDisplay"></span></p>
+        <button onclick="signOutUser()">Sign Out</button>
+      </div>
+      <div id="userLoggedOut">
+        <input type="email" id="emailInput" placeholder="Enter your email" style="margin-bottom: 0.5rem;">
+        <input type="password" id="passwordInput" placeholder="Enter your password" style="margin-bottom: 0.5rem;">
+        <button onclick="handleEmailLogin()">Login / Register with Email</button>
+        <p id="authStatus" style="font-size:0.6rem; margin-top:0.5rem;"></p>
+      </div>
+    </div>
+  </details>
+
   <details style="margin-top:1rem;">
     <summary>How to Use This Tool</summary>
     <div style="margin-top:0.5rem;">
@@ -525,6 +545,102 @@
       const panel = document.getElementById("infoPanel");
       panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
     }
+
+    // Firebase Initialization and Auth Logic
+    const firebaseConfig = {
+      apiKey: "AIzaSyAm-QMDte5ytPN7Z8Cz7VaDe7hUVGsTE-8",
+      authDomain: "sb3calltool.firebaseapp.com",
+      databaseURL: "https://sb3calltool-default-rtdb.firebaseio.com",
+      projectId: "sb3calltool",
+      storageBucket: "sb3calltool.appspot.com", // Corrected: .appspot.com
+      messagingSenderId: "834566220861",
+      appId: "1:834566220861:web:e7e14abeff6558e24b0e54",
+      measurementId: "G-7C1FRV4S69"
+    };
+
+    // Initialize Firebase
+    const firebaseApp = firebase.initializeApp(firebaseConfig); // Using compat version
+    const auth = firebase.auth(); // Using compat version for auth
+    const analytics = firebase.analytics(); // Using compat version for analytics
+
+    const userLoggedInDiv = document.getElementById('userLoggedIn');
+    const userLoggedOutDiv = document.getElementById('userLoggedOut');
+    const userEmailDisplay = document.getElementById('userEmailDisplay');
+    const authStatusP = document.getElementById('authStatus');
+    const authSectionSummary = document.querySelector('#authSection summary');
+
+    function updateUIAfterAuthChange(user) {
+        if (user) {
+            // User is signed in
+            if (userLoggedInDiv) userLoggedInDiv.style.display = 'block';
+            if (userLoggedOutDiv) userLoggedOutDiv.style.display = 'none';
+            if (userEmailDisplay) userEmailDisplay.textContent = user.email;
+            // authStatusP is part of userLoggedOutDiv, so clear it or set login success briefly
+            // if (authStatusP) authStatusP.textContent = 'Successfully logged in.'; // This might flicker
+            if (authSectionSummary) authSectionSummary.textContent = 'Account (' + user.email.split('@')[0] + ')';
+            console.log("User logged in:", user.uid, user.email);
+        } else {
+            // User is signed out
+            if (userLoggedInDiv) userLoggedInDiv.style.display = 'none';
+            if (userLoggedOutDiv) userLoggedOutDiv.style.display = 'block';
+            if (userEmailDisplay) userEmailDisplay.textContent = '';
+            if (authStatusP) authStatusP.textContent = 'Signed out.'; // Indicate signed out
+            if (authSectionSummary) authSectionSummary.textContent = 'Login / Register';
+            console.log("User logged out.");
+        }
+    }
+
+    auth.onAuthStateChanged(user => {
+        updateUIAfterAuthChange(user);
+    });
+
+    async function handleEmailLogin() {
+      const emailInput = document.getElementById('emailInput');
+      const passwordInput = document.getElementById('passwordInput');
+      const email = emailInput.value;
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        if (authStatusP) authStatusP.textContent = "Please enter email and password.";
+        return;
+      }
+      if (authStatusP) authStatusP.textContent = "Processing...";
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        if (authStatusP) authStatusP.textContent = "Login successful!"; // Will be updated by onAuthStateChanged too
+        // UI update will be handled by onAuthStateChanged
+      } catch (error) {
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+          // Try to register
+          if (authStatusP) authStatusP.textContent = "User not found or wrong password. Attempting to register...";
+          try {
+            await auth.createUserWithEmailAndPassword(email, password);
+            if (authStatusP) authStatusP.textContent = "Registration successful! Logging in...";
+            // UI update will be handled by onAuthStateChanged
+          } catch (registerError) {
+            console.error("Registration error:", registerError);
+            if (authStatusP) authStatusP.textContent = "Registration failed: " + registerError.message;
+          }
+        } else {
+          console.error("Login error:", error);
+          if (authStatusP) authStatusP.textContent = "Login failed: " + error.message;
+        }
+      }
+    }
+
+    function signOutUser() {
+      if (authStatusP) authStatusP.textContent = "Signing out...";
+      auth.signOut().then(() => {
+        // Explicitly update UI here to prevent flicker, onAuthStateChanged will also fire
+        updateUIAfterAuthChange(null); 
+        if (authStatusP) authStatusP.textContent = "You have been signed out.";
+      }).catch((error) => {
+        console.error("Sign out error:", error);
+        if (authStatusP) authStatusP.textContent = "Sign out failed: " + error.message;
+      });
+    }
+
 </script>
 
 </body>
